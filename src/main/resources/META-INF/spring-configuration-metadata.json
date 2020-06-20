@@ -1,0 +1,18 @@
+{
+  "properties": [
+    {
+      "name": "dropper.server.discovery.port",
+      "type": "java.lang.Integer",
+      "description": "Discovery server listen and broadcast UDP port."
+  },
+    {
+      "name": "dropper.server.discovery.timePeriod",
+      "type": "java.time.Duration",
+      "description": "Broadcast UDP discovery package time period in ms."
+    },
+    {
+      "name": "dropper.server.discovery.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable broadcast UDP discovery package."
+    }
+] }
