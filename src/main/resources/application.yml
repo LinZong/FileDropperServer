@@ -1,6 +1,2 @@
 dropper:
-  server:
-    discovery:
-      port: 39393
-      timePeriod: 2000ms
-      enabled: true
+  configuration: "server-configuration.json"

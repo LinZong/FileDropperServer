@@ -1,0 +1,7 @@
+{
+  "managePort": 8080,
+  "discoveryPort": 39393,
+  "discoveryTimePeriod": 1000,
+  "downloadRootPath": "D:/Download",
+  "confirmBeforeReceivingFiles": false
+}

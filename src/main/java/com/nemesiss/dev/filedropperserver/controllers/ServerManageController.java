@@ -1,23 +1,20 @@
 package com.nemesiss.dev.filedropperserver.controllers;
 
-import com.nemesiss.dev.filedropperserver.models.properties.ServerDiscoveryProperties;
+import com.nemesiss.dev.filedropperserver.models.configuration.ServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 
 @RestController
 @RequestMapping("/server/")
 public class ServerManageController {
 
-
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    ServerDiscoveryProperties discoveryProperties;
+    ServerConfiguration serverConfiguration;
 
     @GetMapping("health")
     public String healthyCheck() {
-        return "OK  " + discoveryProperties.toString();
+        return "OK" + serverConfiguration.getDownloadRootPath();
     }
 
     @GetMapping("profile")
