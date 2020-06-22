@@ -95,6 +95,13 @@ public class FileDropperConfigurationLoader {
     }
 
     static class SpringApplicationPropertiesLoadedListener implements GenericApplicationListener {
+
+        private final SpringApplication loadingApplication;
+
+        public SpringApplicationPropertiesLoadedListener(SpringApplication loadingApplication) {
+            this.loadingApplication = loadingApplication;
+        }
+
         @Override
         public boolean supportsEventType(ResolvableType eventType) {
             return eventType.equals(ResolvableType.forClass(ApplicationPreparedEvent.class));
@@ -107,8 +114,8 @@ public class FileDropperConfigurationLoader {
                 String configurationFilePath = applicationPreparedEvent.getApplicationContext().getEnvironment().getProperty(DROPPER_CONFIGURATION_PROPERTY_KEY);
                 if (StringUtils.hasText(configurationFilePath)) {
                     applicationPropertiesDefinedServerConfigurationFilePath = configurationFilePath;
-                    new FileDropperConfigurationLoader().beginResolve(applicationPreparedEvent.getApplicationContext());
                 }
+                new FileDropperConfigurationLoader().beginResolve(applicationPreparedEvent.getApplicationContext(), loadingApplication);
             }
         }
     }
@@ -121,7 +128,7 @@ public class FileDropperConfigurationLoader {
             };
 
 
-    public void beginResolve(ConfigurableApplicationContext configurableApplicationContext) {
+    public void beginResolve(ConfigurableApplicationContext configurableApplicationContext, SpringApplication springApplication) {
         ServerConfiguration serverConfiguration = null;
 
         for (ServerConfigurationResolver resolver : resolvers) {
@@ -135,11 +142,11 @@ public class FileDropperConfigurationLoader {
         if (serverConfiguration == null) {
             serverConfiguration = ServerConfiguration.getDefaultServerConfiguration();
         }
-        serverConfiguration.injectPropertiesToSpringEnvironment(configurableApplicationContext);
+        serverConfiguration.injectPropertiesToSpringEnvironment(configurableApplicationContext, springApplication);
     }
 
     public static SpringApplication injectServerConfigurationToSpringProperties(SpringApplication springApplication) {
-        springApplication.addListeners(new SpringApplicationPropertiesLoadedListener());
+        springApplication.addListeners(new SpringApplicationPropertiesLoadedListener(springApplication));
         return springApplication;
     }
 }

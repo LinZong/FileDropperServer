@@ -1,5 +1,5 @@
 {
-  "managePort": 8080,
+  "managePort": 9000,
   "discoveryPort": 39393,
   "discoveryTimePeriod": 1000,
   "downloadRootPath": "D:/Download",
