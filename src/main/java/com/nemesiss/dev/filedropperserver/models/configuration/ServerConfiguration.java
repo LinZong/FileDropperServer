@@ -1,9 +1,15 @@
 package com.nemesiss.dev.filedropperserver.models.configuration;
 
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nemesiss.dev.filedropperserver.FileDropperServerApplication;
 import com.nemesiss.dev.filedropperserver.annotations.PropertiesField;
+import com.nemesiss.dev.filedropperserver.models.JsonSerializableObject;
+import com.nemesiss.dev.filedropperserver.services.configuration.FileDropperConfigurationManager;
+import com.nemesiss.dev.filedropperserver.utils.AppUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,10 +33,10 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
-public class ServerConfiguration {
+public final class ServerConfiguration implements JsonSerializableObject {
 
     public static final String DROPPER_CONFIGURATION_PROPERTY_KEY = "dropper.configuration";
-    public static final String DROPPER_CONFIGURATION_SERVER_PROPERTY_KEY = "dropper.configuration.server";
+    public static final String DROPPER_CONFIGURATION_SERVER_PROPERTY_KEY = DROPPER_CONFIGURATION_PROPERTY_KEY + ".server";
 
     @PropertiesField(value = "server.port")
     private Integer managePort;
@@ -39,10 +45,21 @@ public class ServerConfiguration {
     private Integer discoveryTimePeriod;
     private String downloadRootPath;
     private Boolean confirmBeforeReceivingFiles;
+    private String machineName;
+
+    @JSONField(serialize = false)
+    private boolean fromInternal = false;
 
     public static ServerConfiguration getDefaultServerConfiguration() {
         Path defaultDownloadPath = Paths.get(System.getProperty("user.home"), "Downloads");
-        return new ServerConfiguration(8080, 39393, 1000, defaultDownloadPath.toFile().getAbsolutePath(), false);
+        return new ServerConfiguration(
+                8080,
+                39393,
+                1000,
+                defaultDownloadPath.toFile().getAbsolutePath(),
+                false,
+                AppUtils.resolveComputerName(),
+                true);
     }
 
     public void mergeDefaultValue(ServerConfiguration defaultValueObj) {
@@ -63,16 +80,20 @@ public class ServerConfiguration {
         ConfigurableEnvironment ce = cac.getEnvironment();
 
         MutablePropertySources propertySources = ce.getPropertySources();
-
         injectSettingsWithNamespacePrefix(propertySources);
         injectSystemPropertiesFields(propertySources);
 
+        // 把配置文件和配置文件管理器都注入到Bean容器
         cac.getBeanFactory().registerSingleton(this.getClass().getCanonicalName(), this);
+        cac.getBeanFactory().registerSingleton(
+                FileDropperConfigurationManager.class.getCanonicalName(),
+                new FileDropperConfigurationManager(this));
     }
 
     private void injectSettingsWithNamespacePrefix(MutablePropertySources propertySources) {
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, Object> fieldToMap = mapper.convertValue(this, new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> fieldToMap = mapper.convertValue(this, new TypeReference<Map<String, Object>>() {
+        });
         fieldToMap = fieldToMap.keySet().stream().collect(Collectors.toMap(k -> DROPPER_CONFIGURATION_PROPERTY_KEY + "." + k, fieldToMap::get));
         propertySources.addLast(new MapPropertySource(DROPPER_CONFIGURATION_PROPERTY_KEY, fieldToMap));
     }
@@ -96,5 +117,10 @@ public class ServerConfiguration {
             }
         }
         propertySources.addLast(new MapPropertySource(DROPPER_CONFIGURATION_SERVER_PROPERTY_KEY, propertyPairs));
+    }
+
+    @Override
+    public String toJsonString() {
+        return JSON.toJSONString(this);
     }
 }

@@ -3,6 +3,7 @@ package com.nemesiss.dev.filedropperserver.services.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nemesiss.dev.filedropperserver.models.configuration.ServerConfiguration;
 import com.nemesiss.dev.filedropperserver.services.configuration.resolver.path.ServerConfigurationResolver;
+import com.nemesiss.dev.filedropperserver.utils.AppUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.boot.SpringApplication;
@@ -24,7 +25,7 @@ import static com.nemesiss.dev.filedropperserver.models.configuration.ServerConf
 @Slf4j
 public class FileDropperConfigurationLoader {
 
-    private static String applicationPropertiesDefinedServerConfigurationFilePath = "server-configuration.json";
+    public static String DEFAULT_CONFIGURATION_NAME = "server-configuration.json";
 
     public static ServerConfiguration loadServerConfigurationFromFile(File file) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -33,11 +34,11 @@ public class FileDropperConfigurationLoader {
         return serverConfiguration;
     }
 
-    static class PackageResourceConfigurationResolver implements ServerConfigurationResolver {
+    static class PackageResourceConfigurationResolver extends ServerConfigurationResolver {
 
         @Override
         public ServerConfiguration resolve() {
-            ClassPathResource cpr = new ClassPathResource(applicationPropertiesDefinedServerConfigurationFilePath);
+            ClassPathResource cpr = new ClassPathResource(DEFAULT_CONFIGURATION_NAME);
             if (cpr.exists()) {
                 try {
                     byte[] result = IOUtils.toByteArray(cpr.getInputStream());
@@ -45,6 +46,7 @@ public class FileDropperConfigurationLoader {
                     ObjectMapper mapper = new ObjectMapper();
                     ServerConfiguration serverConfiguration = mapper.readValue(resultJson, ServerConfiguration.class);
                     serverConfiguration.mergeDefaultValue(ServerConfiguration.getDefaultServerConfiguration());
+                    extractConfigurationToWorkingDirectory(serverConfiguration);
                     return serverConfiguration;
                 } catch (Exception e) {
                     log.error("PackageResourceConfigurationResolver load ServerConfiguration from: classpath:server-configuration.json failed! Reason: {}",
@@ -53,12 +55,24 @@ public class FileDropperConfigurationLoader {
             }
             return null;
         }
+
+        private static void extractConfigurationToWorkingDirectory(ServerConfiguration serverConfiguration) {
+            log.warn("Extracting server-configuration.json to your working directory: {}", AppUtils.CWD);
+            log.warn("It's strongly recommended that customize this server using external configuration file at the same work directory with the current running program.");
+            try {
+                FileDropperConfigurationManager.writeConfigurationToPathAsJsonString(serverConfiguration, AppUtils.CWD);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (IllegalStateException | IllegalArgumentException ise) {
+                log.error(ise.getMessage());
+            }
+        }
     }
 
-    static class SpringApplicationPropertiesConfigurationResolver implements ServerConfigurationResolver {
+    static class SpringApplicationPropertiesConfigurationResolver extends ServerConfigurationResolver {
         @Override
         public ServerConfiguration resolve() {
-            File file = new File(applicationPropertiesDefinedServerConfigurationFilePath);
+            File file = new File(DEFAULT_CONFIGURATION_NAME);
             if (file.exists() && file.canRead()) {
                 try {
                     return loadServerConfigurationFromFile(file);
@@ -66,7 +80,7 @@ public class FileDropperConfigurationLoader {
                     // Ignored.
                 } catch (Exception e) {
                     log.error("SpringApplicationPropertiesConfigurationResolver load ServerConfiguration from: {} failed! Reason: {}",
-                            applicationPropertiesDefinedServerConfigurationFilePath,
+                            DEFAULT_CONFIGURATION_NAME,
                             e.getMessage());
                 }
             }
@@ -74,7 +88,7 @@ public class FileDropperConfigurationLoader {
         }
     }
 
-    static class SystemPropertyParameterResolver implements ServerConfigurationResolver {
+    static class SystemPropertyParameterResolver extends ServerConfigurationResolver {
         @Override
         public ServerConfiguration resolve() {
             try {
@@ -113,7 +127,7 @@ public class FileDropperConfigurationLoader {
                 ApplicationPreparedEvent applicationPreparedEvent = (ApplicationPreparedEvent) event;
                 String configurationFilePath = applicationPreparedEvent.getApplicationContext().getEnvironment().getProperty(DROPPER_CONFIGURATION_PROPERTY_KEY);
                 if (StringUtils.hasText(configurationFilePath)) {
-                    applicationPropertiesDefinedServerConfigurationFilePath = configurationFilePath;
+                    DEFAULT_CONFIGURATION_NAME = configurationFilePath;
                 }
                 new FileDropperConfigurationLoader().beginResolve(applicationPreparedEvent.getApplicationContext(), loadingApplication);
             }
@@ -130,7 +144,6 @@ public class FileDropperConfigurationLoader {
 
     public void beginResolve(ConfigurableApplicationContext configurableApplicationContext, SpringApplication springApplication) {
         ServerConfiguration serverConfiguration = null;
-
         for (ServerConfigurationResolver resolver : resolvers) {
             serverConfiguration = resolver.resolve();
             if (serverConfiguration != null) {

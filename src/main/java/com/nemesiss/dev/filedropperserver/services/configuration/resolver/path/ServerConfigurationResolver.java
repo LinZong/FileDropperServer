@@ -11,7 +11,8 @@ import com.nemesiss.dev.filedropperserver.models.configuration.ServerConfigurati
  * 3. Jar package default server-configuration.
  * 4. Hardcode default Server Configuration.
  */
-public interface ServerConfigurationResolver {
+public abstract class ServerConfigurationResolver {
 
-    ServerConfiguration resolve();
+
+    public abstract ServerConfiguration resolve();
 }

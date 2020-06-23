@@ -3,5 +3,6 @@
   "discoveryPort": 39393,
   "discoveryTimePeriod": 1000,
   "downloadRootPath": "D:/Download",
-  "confirmBeforeReceivingFiles": false
+  "confirmBeforeReceivingFiles": false,
+  "machineName": "NemesissLenovo"
 }
