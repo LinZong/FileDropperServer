@@ -1,6 +1,7 @@
-package com.nemesiss.dev.filedropperserver.models;
+package com.nemesiss.dev.filedropperserver.models.command;
 
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +13,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CommandReply<T> {
 
-    int commandType;
+    @JSONField(serialize = false)
+    Class<?> commandType;
 
     boolean success;
 

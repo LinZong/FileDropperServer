@@ -40,12 +40,14 @@ public final class ServerConfiguration implements JsonSerializableObject {
 
     @PropertiesField(value = "server.port")
     private Integer managePort;
-
     private Integer discoveryPort;
+    private Integer transferTcpPort;
     private Integer discoveryTimePeriod;
     private String downloadRootPath;
     private Boolean confirmBeforeReceivingFiles;
     private String machineName;
+    private Integer maximumChunksPerFile;
+    private Integer maximumDownloadTasks;
 
     @JSONField(serialize = false)
     private boolean fromInternal = false;
@@ -55,10 +57,13 @@ public final class ServerConfiguration implements JsonSerializableObject {
         return new ServerConfiguration(
                 8080,
                 39393,
+                9080,
                 1000,
                 defaultDownloadPath.toFile().getAbsolutePath(),
                 false,
                 AppUtils.resolveComputerName(),
+                5,
+                5,
                 true);
     }
 

@@ -1,8 +1,11 @@
 {
   "managePort": 9000,
   "discoveryPort": 39393,
+  "transferTcpPort": 9080,
   "discoveryTimePeriod": 1000,
   "downloadRootPath": "D:/Download",
   "confirmBeforeReceivingFiles": false,
-  "machineName": "NemesissLenovo"
+  "machineName": "Nemesiss-Lenovo",
+  "maximumChunksPerFile": 5,
+  "maximumDownloadTasks": 5
 }
