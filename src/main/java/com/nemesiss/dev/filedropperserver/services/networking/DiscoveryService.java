@@ -80,8 +80,8 @@ public class DiscoveryService {
                                         channel.eventLoop()
                                                 .scheduleAtFixedRate(() -> channel.writeAndFlush(selfMachineInfo),
                                                         0,
-                                                        1,
-                                                        TimeUnit.SECONDS);
+                                                        serverConfiguration.getDiscoveryTimePeriod(),
+                                                        TimeUnit.MILLISECONDS);
                             }
                         });
                         pipeline.addLast(new MachineInfoDecoder());
@@ -90,7 +90,9 @@ public class DiscoveryService {
                             protected void channelRead0(ChannelHandlerContext ctx, MachineInfo machineInfo) throws Exception {
                                 if (machineInfo != null && !machineInfo.equals(selfMachineInfo)) {
                                     synchronized (DISCOVERY_RES_MACHINE) {
-                                        DISCOVERY_RES_MACHINE.add(machineInfo);
+                                        if (DISCOVERY_RES_MACHINE.add(machineInfo)) {
+                                            logNewMachineFound(machineInfo);
+                                        }
                                     }
                                 }
                             }
@@ -174,6 +176,11 @@ public class DiscoveryService {
 
     public CommandReply handleDiscoveryStop(CommandRequest command) {
         stopNettyBroadcastLoop();
+        DISCOVERY_RES_MACHINE.clear();
         return new CommandReply(command.getCommand(), true, CommandReply.SUCCESS_REPLY, null);
+    }
+
+    public static void logNewMachineFound(MachineInfo machineInfo) {
+        log.info("New Machine Found: {}", machineInfo);
     }
 }

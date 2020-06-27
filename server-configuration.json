@@ -1,8 +1,11 @@
 {
-  "confirmBeforeReceivingFiles": false,
+  "managePort": 9000,
   "discoveryPort": 39393,
+  "transferTcpPort": 9080,
   "discoveryTimePeriod": 1000,
   "downloadRootPath": "D:/Downloads",
-  "machineName": "林总的戴尔",
-  "managePort": 9000
+  "confirmBeforeReceivingFiles": false,
+  "machineName": "Nemesiss-Lenovo",
+  "maximumChunksPerFile": 5,
+  "maximumDownloadTasks": 5
 }
