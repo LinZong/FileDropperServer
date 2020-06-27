@@ -1,11 +1,19 @@
 package com.nemesiss.dev.filedropperserver.utils;
 
+import com.nemesiss.dev.filedropperserver.models.discoveryservice.NetworkInterfaceCandidate;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Random;
 
 @Slf4j
@@ -29,5 +37,13 @@ public class AppUtils {
         }
         // Fallback to random name.
         return "FileDropperServer-" + new Random().nextInt(Integer.MAX_VALUE);
+    }
+
+
+
+    public static <T> List<T> collectEnumeration(Enumeration<T> enumeration) {
+        List<T> result = new ArrayList<>();
+        CollectionUtils.addAll(result, enumeration);
+        return result;
     }
 }

@@ -29,5 +29,7 @@ public class SupportCommand {
     public static final SupportCommand BEGIN_DISCOVERY = new SupportCommand("BEGIN_DISCOVERY");
     public static final SupportCommand STOP_DISCOVERY = new SupportCommand("STOP_DISCOVERY");
     public static final SupportCommand DISCOVERY_RESULT = new SupportCommand("DISCOVERY_RESULT");
+    public static final SupportCommand SELECT_DISCOVERY_CANDIDATES = new SupportCommand("SELECT_DISCOVERY_CANDIDATES");
+    public static final SupportCommand LIST_DISCOVERY_CANDIDATES = new SupportCommand("LIST_DISCOVERY_CANDIDATES");
     private String name;
 }

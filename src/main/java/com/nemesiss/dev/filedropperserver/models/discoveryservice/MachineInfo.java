@@ -67,7 +67,7 @@ public class MachineInfo implements JsonSerializableObject {
         byte[] ipAddrPacket = {packet[1], packet[2], packet[3], packet[4]};
         try {
             InetAddress ipAddrObj = Inet4Address.getByAddress(ipAddrPacket);
-            int mgmrPort = (packet[5] << 8) & (0xff00);
+            int mgmrPort = (packet[5] << 8) & 0xff00;
             mgmrPort |= (packet[6] & 0xfff);
 
             int tsfTcpPort = (packet[7] << 8) & 0xff00;

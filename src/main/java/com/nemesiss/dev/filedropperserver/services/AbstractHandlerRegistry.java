@@ -5,7 +5,6 @@ import com.nemesiss.dev.filedropperserver.models.exceptions.NoSuchCommandExecuto
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.LinkedHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;

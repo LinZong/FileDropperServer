@@ -1,5 +1,6 @@
 package com.nemesiss.dev.filedropperserver;
 
+import com.nemesiss.dev.filedropperserver.services.configuration.FileDropperConfigurationLoader;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
@@ -7,21 +8,29 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.string.StringEncoder;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-//@SpringBootApplication
+@SpringBootApplication
 public class FileDropperServerApplication {
 
     public static void main(String[] args) throws InterruptedException {
 
-        tcp();
+        defaultLaunch(args);
+//        broadcaster();
+    }
+
+    public static void defaultLaunch(String[] args) {
+        FileDropperConfigurationLoader.injectServerConfigurationToSpringProperties(
+                new SpringApplication(FileDropperServerApplication.class)
+        ).run(args);
     }
 
     public static void tcp() throws InterruptedException {

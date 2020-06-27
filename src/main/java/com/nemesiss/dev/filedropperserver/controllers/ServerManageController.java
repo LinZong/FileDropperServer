@@ -1,6 +1,12 @@
 package com.nemesiss.dev.filedropperserver.controllers;
 
+import com.nemesiss.dev.filedropperserver.models.command.CommandReply;
+import com.nemesiss.dev.filedropperserver.models.command.CommandRequest;
+import com.nemesiss.dev.filedropperserver.models.command.SupportCommand;
 import com.nemesiss.dev.filedropperserver.models.configuration.ServerConfiguration;
+import com.nemesiss.dev.filedropperserver.models.discoveryservice.MachineInfo;
+import com.nemesiss.dev.filedropperserver.services.FileDropperCore;
+import com.nemesiss.dev.filedropperserver.services.networking.DiscoveryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +18,9 @@ public class ServerManageController {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     ServerConfiguration serverConfiguration;
+
+    @Autowired
+    FileDropperCore fileDropperCore;
 
     @Value("${dropper.configuration.managePort}")
     int managePort;
@@ -32,12 +41,15 @@ public class ServerManageController {
     }
 
     @GetMapping("discovery/endpoint")
-    public String getDiscoveredEndpoint() {
-        return "Nothing yet.";
+    public CommandReply getDiscoveredEndpoint() {
+        return fileDropperCore.routeCommand(new CommandRequest(SupportCommand.DISCOVERY_RESULT, null));
     }
 
     @PostMapping("discovery/switch/{status}")
-    public String changeDiscoverySwitch(@PathVariable(name = "status") boolean status) {
-        return "Status: " + status;
+    public CommandReply changeDiscoverySwitch(@PathVariable(name = "status") boolean status) {
+        if (status) {
+            return fileDropperCore.routeCommand(new CommandRequest(SupportCommand.BEGIN_DISCOVERY, null));
+        }
+        return fileDropperCore.routeCommand(new CommandRequest(SupportCommand.STOP_DISCOVERY, null));
     }
 }

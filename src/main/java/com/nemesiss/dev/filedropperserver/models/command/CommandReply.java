@@ -19,4 +19,6 @@ public class CommandReply {
     Object replyContent;
 
     Throwable cause;
+
+    public static final String SUCCESS_REPLY = "OK";
 }
