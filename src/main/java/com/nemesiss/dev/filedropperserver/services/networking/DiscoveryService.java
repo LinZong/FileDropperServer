@@ -13,12 +13,9 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -26,21 +23,22 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class DiscoveryService {
 
-    final ServerConfiguration serverConfiguration;
+    private final ServerConfiguration serverConfiguration;
 
-    final FileDropperCore fileDropperCore;
+    private final FileDropperCore fileDropperCore;
 
-
-    private final LinkedHashSet<MachineInfo> DISCOVERY_RES_MACHINE = new LinkedHashSet<>();
+    private final LinkedHashMap<MachineInfo, Integer> DISCOVERY_RES_MACHINE = new LinkedHashMap<>();
 
     private MachineInfo selfMachineInfo = null;
 
     private List<NetworkInterfaceCandidate> bindNicCandidates = NetworkUtils.resolveNicCandidates();
 
-
     private EventLoopGroup discoveryEventLoopGroup = null;
 
     private ScheduledFuture<?> sendDiscoveryPacketTask = null;
+
+    private static final int MACHINE_DIED_THRESHOLD = 5;
+
 
     public DiscoveryService(ServerConfiguration serverConfiguration, FileDropperCore fileDropperCore) {
         this.serverConfiguration = serverConfiguration;
@@ -49,6 +47,22 @@ public class DiscoveryService {
         fileDropperCore.registerHandler(SupportCommand.BEGIN_DISCOVERY, this::handleDiscoveryBegin);
         fileDropperCore.registerHandler(SupportCommand.STOP_DISCOVERY, this::handleDiscoveryStop);
         fileDropperCore.registerHandler(SupportCommand.DISCOVERY_RESULT, this::handleGetDiscoveryResult);
+    }
+
+    private void maintainAliveMachine() {
+        synchronized (DISCOVERY_RES_MACHINE) {
+            List<MachineInfo> diedMachine = new ArrayList<>();
+            for (Map.Entry<MachineInfo, Integer> entry : DISCOVERY_RES_MACHINE.entrySet()) {
+                int age = entry.getValue() + 1;
+                if (age == MACHINE_DIED_THRESHOLD) {
+                    logNewMachineDied(entry.getKey());
+                    diedMachine.add(entry.getKey());
+                } else {
+                    DISCOVERY_RES_MACHINE.put(entry.getKey(), age);
+                }
+            }
+            diedMachine.forEach(DISCOVERY_RES_MACHINE::remove);
+        }
     }
 
     /**
@@ -78,7 +92,10 @@ public class DiscoveryService {
                                 log.info("Broadcast discovery started.");
                                 sendDiscoveryPacketTask =
                                         channel.eventLoop()
-                                                .scheduleAtFixedRate(() -> channel.writeAndFlush(selfMachineInfo),
+                                                .scheduleAtFixedRate(() -> {
+                                                            maintainAliveMachine();
+                                                            channel.writeAndFlush(selfMachineInfo);
+                                                        },
                                                         0,
                                                         serverConfiguration.getDiscoveryTimePeriod(),
                                                         TimeUnit.MILLISECONDS);
@@ -90,9 +107,10 @@ public class DiscoveryService {
                             protected void channelRead0(ChannelHandlerContext ctx, MachineInfo machineInfo) throws Exception {
                                 if (machineInfo != null && !machineInfo.equals(selfMachineInfo)) {
                                     synchronized (DISCOVERY_RES_MACHINE) {
-                                        if (DISCOVERY_RES_MACHINE.add(machineInfo)) {
+                                        if (!DISCOVERY_RES_MACHINE.containsKey(machineInfo)) {
                                             logNewMachineFound(machineInfo);
                                         }
+                                        DISCOVERY_RES_MACHINE.put(machineInfo, 0);
                                     }
                                 }
                             }
@@ -142,7 +160,7 @@ public class DiscoveryService {
 
     public CommandReply handleGetDiscoveryResult(CommandRequest command) {
         synchronized (DISCOVERY_RES_MACHINE) {
-            MachineInfo[] machineInfos = DISCOVERY_RES_MACHINE.toArray(new MachineInfo[0]);
+            MachineInfo[] machineInfos = DISCOVERY_RES_MACHINE.keySet().toArray(new MachineInfo[0]);
             return new CommandReply(command.getCommand(), true, machineInfos, null);
         }
     }
@@ -182,5 +200,9 @@ public class DiscoveryService {
 
     public static void logNewMachineFound(MachineInfo machineInfo) {
         log.info("New Machine Found: {}", machineInfo);
+    }
+
+    public static void logNewMachineDied(MachineInfo machineInfo) {
+        log.info("Machine Died: {}", machineInfo);
     }
 }
