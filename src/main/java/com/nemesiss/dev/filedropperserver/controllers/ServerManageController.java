@@ -22,12 +22,9 @@ public class ServerManageController {
     @Autowired
     FileDropperCore fileDropperCore;
 
-    @Value("${dropper.configuration.managePort}")
-    int managePort;
-
     @GetMapping("health")
     public String healthyCheck() {
-        return "OK" + serverConfiguration.getDownloadRootPath() + managePort;
+        return "OK  " + serverConfiguration.toString();
     }
 
     @GetMapping("profile")

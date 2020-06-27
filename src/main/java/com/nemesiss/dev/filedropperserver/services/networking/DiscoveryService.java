@@ -4,6 +4,7 @@ import com.nemesiss.dev.filedropperserver.models.command.CommandReply;
 import com.nemesiss.dev.filedropperserver.models.command.CommandRequest;
 import com.nemesiss.dev.filedropperserver.models.command.SupportCommand;
 import com.nemesiss.dev.filedropperserver.models.configuration.ServerConfiguration;
+import com.nemesiss.dev.filedropperserver.models.discoveryservice.DiscoveryStatus;
 import com.nemesiss.dev.filedropperserver.models.discoveryservice.MachineInfo;
 import com.nemesiss.dev.filedropperserver.models.discoveryservice.NetworkInterfaceCandidate;
 import com.nemesiss.dev.filedropperserver.services.FileDropperCore;
@@ -128,12 +129,16 @@ public class DiscoveryService {
         return false;
     }
 
-    private void stopNettyBroadcastLoop() {
-        // Stop netty broadcasting.
-        if (discoveryEventLoopGroup != null &&
+    private boolean isDiscovering() {
+        return discoveryEventLoopGroup != null &&
                 !discoveryEventLoopGroup.isTerminated() &&
                 !discoveryEventLoopGroup.isShutdown() &&
-                !discoveryEventLoopGroup.isShuttingDown()) {
+                !discoveryEventLoopGroup.isShuttingDown();
+    }
+
+    private void stopNettyBroadcastLoop() {
+        // Stop netty broadcasting.
+        if (isDiscovering()) {
             try {
                 log.info("Shutting down broadcast discovery...");
                 if (sendDiscoveryPacketTask != null) {
@@ -147,6 +152,7 @@ public class DiscoveryService {
                     }
                     // 强行停止发送任务
                     if (!canceled) {
+                        log.info("Force shutting down discovery packet sender...");
                         sendDiscoveryPacketTask.cancel(true);
                     }
                     discoveryEventLoopGroup.shutdownGracefully().await();
@@ -161,7 +167,7 @@ public class DiscoveryService {
     public CommandReply handleGetDiscoveryResult(CommandRequest command) {
         synchronized (DISCOVERY_RES_MACHINE) {
             MachineInfo[] machineInfos = DISCOVERY_RES_MACHINE.keySet().toArray(new MachineInfo[0]);
-            return new CommandReply(command.getCommand(), true, machineInfos, null);
+            return new CommandReply(command.getCommand(), true, new DiscoveryStatus(isDiscovering(), machineInfos), null);
         }
     }
 

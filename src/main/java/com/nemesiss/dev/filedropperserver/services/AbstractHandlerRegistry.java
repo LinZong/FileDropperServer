@@ -40,7 +40,6 @@ public class AbstractHandlerRegistry implements CommandRouter {
         }
 
         //Validate Parameterized Type
-
         try {
             return COMMAND_HANDLER_THREAD_POOL.submit(() -> (executor).handleCommand(command)).get();
         } catch (Exception e) {
