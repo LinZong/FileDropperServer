@@ -1,22 +1,15 @@
 package com.nemesiss.dev.filedropperserver.models.command;
 
-
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class CommandReply {
+@AllArgsConstructor
+public class CommandRequest {
 
     SupportCommand command;
 
-    boolean success;
-
-    Object replyContent;
-
-    Throwable cause;
+    Object commandContent;
 }

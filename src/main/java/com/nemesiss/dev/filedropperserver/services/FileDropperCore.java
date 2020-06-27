@@ -1,20 +1,10 @@
 package com.nemesiss.dev.filedropperserver.services;
 
-import com.nemesiss.dev.filedropperserver.models.command.CommandExecutor;
-import com.nemesiss.dev.filedropperserver.models.command.CommandRouter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
-public class FileDropperCore implements CommandRouter {
+@Slf4j
+public class FileDropperCore extends AbstractHandlerRegistry {
 
-
-    @Override
-    public synchronized  <T, R> void registerHandler(Class<T> commandType, CommandExecutor<T, R> commandExecutor) {
-
-    }
-
-    @Override
-    public <T> void routeCommand(T command) {
-
-    }
 }

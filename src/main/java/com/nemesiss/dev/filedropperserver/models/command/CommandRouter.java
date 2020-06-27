@@ -1,8 +1,12 @@
 package com.nemesiss.dev.filedropperserver.models.command;
 
+import java.util.concurrent.Future;
+
 public interface CommandRouter {
 
-    <T,R>  void registerHandler(Class<T> commandType, CommandExecutor<T,R> commandExecutor);
+    void registerHandler(SupportCommand commandType, CommandExecutor commandExecutor);
 
-    <T> void routeCommand(T command);
+    CommandReply routeCommand(CommandRequest command);
+
+    void gracefullyShutdown();
 }
