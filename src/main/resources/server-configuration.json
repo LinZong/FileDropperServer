@@ -5,7 +5,7 @@
   "discoveryTimePeriod": 1000,
   "downloadRootPath": "D:/Download",
   "confirmBeforeReceivingFiles": false,
-  "machineName": "Nemesiss-Lenovo",
+  "machineName": "林总的Y7000 2020",
   "maximumChunksPerFile": 5,
   "maximumDownloadTasks": 5
 }
