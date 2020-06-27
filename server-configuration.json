@@ -1,1 +1,8 @@
-{"confirmBeforeReceivingFiles":false,"discoveryPort":39393,"discoveryTimePeriod":1000,"downloadRootPath":"D:/Download","machineName":"NemesissLenovo","managePort":9000}
+{
+  "confirmBeforeReceivingFiles": false,
+  "discoveryPort": 39393,
+  "discoveryTimePeriod": 1000,
+  "downloadRootPath": "D:/Downloads",
+  "machineName": "林总的戴尔",
+  "managePort": 9000
+}

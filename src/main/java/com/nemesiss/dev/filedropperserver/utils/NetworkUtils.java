@@ -4,7 +4,9 @@ import com.nemesiss.dev.filedropperserver.models.discoveryservice.NetworkInterfa
 
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,11 +23,39 @@ public class NetworkUtils {
             e.printStackTrace();
         }
 
-        return networkInterfaces
+        List<NetworkInterfaceCandidate> candidates = networkInterfaces
                 .stream()
                 .filter(NetworkUtils::filterCandidateNIC)
                 .map(x -> new NetworkInterfaceCandidate(x.getDisplayName(), x.getInetAddresses().nextElement(), x))
                 .collect(Collectors.toList());
+
+
+        // 尝试优先匹配真是的网卡
+
+        List<NetworkInterfaceCandidate> sortedCandidates = new ArrayList<>(candidates.size());
+
+        Iterator<NetworkInterfaceCandidate> iterator = candidates.iterator();
+        while (iterator.hasNext()) {
+            NetworkInterfaceCandidate next = iterator.next();
+            if (matchNicProducts(next.getNicName())) {
+                sortedCandidates.add(next);
+                iterator.remove();
+            }
+        }
+        sortedCandidates.addAll(candidates);
+        return sortedCandidates;
+    }
+
+
+    private static boolean matchNicProducts(String NicName) {
+        String[] products = {"intel", "realtek", "qualcomm", "atheros"};
+        String lowerNicName = NicName.toLowerCase();
+        for (String product : products) {
+            if (lowerNicName.contains(product)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

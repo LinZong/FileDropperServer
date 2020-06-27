@@ -155,6 +155,7 @@ public class FileDropperConfigurationLoader {
         if (serverConfiguration == null) {
             serverConfiguration = ServerConfiguration.getDefaultServerConfiguration();
         }
+        log.info("Loaded Server Configuration is: {}", serverConfiguration.toString());
         serverConfiguration.injectPropertiesToSpringEnvironment(configurableApplicationContext, springApplication);
     }
 

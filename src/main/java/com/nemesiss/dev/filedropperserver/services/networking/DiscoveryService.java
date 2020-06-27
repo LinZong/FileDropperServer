@@ -100,7 +100,7 @@ public class DiscoveryService {
                 });
 
         try {
-            bootstrap.bind(serverConfiguration.getDiscoveryPort()).sync();
+            bootstrap.bind(selfMachineInfo.getMachineIp(), serverConfiguration.getDiscoveryPort()).sync();
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -157,8 +157,8 @@ public class DiscoveryService {
                 log.error("DiscoveryService: Cannot find any NIC to send discovery packet.");
                 return new CommandReply(command.getCommand(), false, "No NIC can be used to send discovery packet.", null);
             }
-            log.warn("Use the first candidate NIC to send discovery packet.");
             NetworkInterfaceCandidate firstCandidate = bindNicCandidates.get(0);
+            log.warn("Use the first candidate NIC to send discovery packet. {}", firstCandidate);
             selfMachineInfo = new MachineInfo(
                     serverConfiguration.getMachineName(),
                     firstCandidate.getNicIpAddr(),
@@ -166,10 +166,10 @@ public class DiscoveryService {
                     serverConfiguration.getTransferTcpPort());
         }
 
-        if(startNettyBroadcastLoop()) {
+        if (startNettyBroadcastLoop()) {
             return new CommandReply(command.getCommand(), true, CommandReply.SUCCESS_REPLY, null);
         }
-        return new CommandReply(command.getCommand(),false,"Cannot launch discovery service", null);
+        return new CommandReply(command.getCommand(), false, "Cannot launch discovery service", null);
     }
 
     public CommandReply handleDiscoveryStop(CommandRequest command) {
