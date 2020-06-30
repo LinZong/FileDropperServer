@@ -2,6 +2,8 @@ package com.nemesiss.dev.filedropperserver.utils;
 
 import com.nemesiss.dev.filedropperserver.models.discoveryservice.NetworkInterfaceCandidate;
 
+import java.net.InetAddress;
+import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
@@ -26,7 +28,8 @@ public class NetworkUtils {
         List<NetworkInterfaceCandidate> candidates = networkInterfaces
                 .stream()
                 .filter(NetworkUtils::filterCandidateNIC)
-                .map(x -> new NetworkInterfaceCandidate(x.getDisplayName(), x.getInetAddresses().nextElement(), x))
+                .map(x -> new NetworkInterfaceCandidate(x.getDisplayName(), resolveIpv4Address(x), x))
+                .filter(x -> x.getNicIpAddr() != null)
                 .collect(Collectors.toList());
 
 
@@ -47,8 +50,21 @@ public class NetworkUtils {
     }
 
 
+    private static InetAddress resolveIpv4Address(NetworkInterface networkInterface) {
+        List<InterfaceAddress> interfaceAddresses = networkInterface.getInterfaceAddresses();
+
+        for (InterfaceAddress interfaceAddress : interfaceAddresses) {
+            InetAddress address = interfaceAddress.getAddress();
+            InetAddress broadcast = interfaceAddress.getBroadcast();
+            if (broadcast != null) {
+                return address;
+            }
+        }
+        return null;
+    }
+
     private static boolean matchNicProducts(String NicName) {
-        String[] products = {"intel", "realtek", "qualcomm", "atheros"};
+        String[] products = {"intel", "realtek", "qualcomm", "atheros", "broadcomm", "en0", "en1", "en2"};
         String lowerNicName = NicName.toLowerCase();
         for (String product : products) {
             if (lowerNicName.contains(product)) {

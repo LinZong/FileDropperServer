@@ -14,14 +14,16 @@ import io.netty.handler.codec.string.StringEncoder;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @SpringBootApplication
 public class FileDropperServerApplication {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, UnknownHostException {
 
         defaultLaunch(args);
 //        broadcaster();
@@ -85,7 +87,7 @@ public class FileDropperServerApplication {
         channel.closeFuture().sync();
     }
 
-    public static void broadcaster() throws InterruptedException {
+    public static void broadcaster() throws InterruptedException, UnknownHostException {
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(eventLoopGroup)
@@ -117,7 +119,7 @@ public class FileDropperServerApplication {
                 });
 
 
-        ChannelFuture future = bootstrap.bind(39393).sync();
+        ChannelFuture future = bootstrap.bind(InetAddress.getByName("192.168.18.216"),39393).sync();
         Channel channel = future.channel();
 
         Thread thread = new Thread(() -> {

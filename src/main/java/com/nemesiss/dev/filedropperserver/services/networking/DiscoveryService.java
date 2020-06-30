@@ -14,6 +14,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SystemUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -121,7 +122,7 @@ public class DiscoveryService {
                 });
 
         try {
-            bootstrap.bind(selfMachineInfo.getMachineIp(), serverConfiguration.getDiscoveryPort()).sync();
+            bootstrap.bind(SystemUtils.IS_OS_MAC_OSX ? "0.0.0.0" : selfMachineInfo.getMachineIp().getHostAddress(), serverConfiguration.getDiscoveryPort()).sync();
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
